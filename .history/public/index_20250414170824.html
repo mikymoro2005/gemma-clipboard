@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemma Clipboard Manager</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .instructions {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+        .button-container {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        .download {
+            background-color: #007bff;
+            color: white;
+        }
+        .download:hover {
+            background-color: #0056b3;
+        }
+        .start {
+            background-color: #28a745;
+            color: white;
+        }
+        .start:hover {
+            background-color: #218838;
+        }
+        .stop {
+            background-color: #dc3545;
+            color: white;
+        }
+        .stop:hover {
+            background-color: #c82333;
+        }
+        button:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+        #status {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .platform-scripts {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e9ecef;
+            border-radius: 4px;
+        }
+        .platform-scripts h3 {
+            margin-top: 0;
+            color: #495057;
+        }
+        .platform-scripts ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        .platform-scripts li {
+            margin: 10px 0;
+        }
+        .platform-scripts a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        .platform-scripts a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Gemma Clipboard Manager</h1>
+        
+        <div class="instructions">
+            <h2>Istruzioni</h2>
+            <p>Questo programma monitora il tuo clipboard e utilizza l'API Gemini per generare risposte.</p>
+            <ol>
+                <li>Copia un testo nel tuo clipboard</li>
+                <li>Il programma invierà automaticamente il testo a Gemini</li>
+                <li>La risposta verrà copiata nel tuo clipboard</li>
+                <li>Riceverai anche un'email con la domanda e la risposta</li>
+            </ol>
+        </div>
+
+        <div class="platform-scripts">
+            <h3>Script di Avvio Rapido</h3>
+            <p>Seleziona lo script appropriato per il tuo sistema operativo:</p>
+            <ul>
+                <li>Windows: <a href="/start_windows.bat" download>Scarica start_windows.bat</a></li>
+                <li>macOS: <a href="/start_mac.command" download>Scarica start_mac.command</a></li>
+                <li>Linux: <a href="/start_linux.sh" download>Scarica start_linux.sh</a></li>
+            </ul>
+            <p>Dopo aver scaricato lo script, eseguilo con un doppio click (Windows) o da terminale (macOS/Linux).</p>
+        </div>
+
+        <div class="button-container">
+            <button id="downloadBtn" class="download">Scarica Script</button>
+            <button id="startBtn" class="start">Avvia Script</button>
+            <button id="stopBtn" class="stop">Ferma Script</button>
+        </div>
+
+        <div id="status"></div>
+    </div>
+
+    <script>
+        const downloadBtn = document.getElementById('downloadBtn');
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const status = document.getElementById('status');
+
+        downloadBtn.addEventListener('click', async () => {
+            try {
+                const response = await fetch('/download');
+                const data = await response.json();
+                if (data.success) {
+                    status.textContent = 'Script scaricato con successo!';
+                    status.className = 'success';
+                } else {
+                    status.textContent = 'Errore durante il download: ' + data.error;
+                    status.className = 'error';
+                }
+            } catch (error) {
+                status.textContent = 'Errore durante il download: ' + error;
+                status.className = 'error';
+            }
+        });
+
+        startBtn.addEventListener('click', async () => {
+            try {
+                const response = await fetch('/start');
+                const data = await response.json();
+                if (data.success) {
+                    status.textContent = 'Script avviato con successo!';
+                    status.className = 'success';
+                    startBtn.disabled = true;
+                    stopBtn.disabled = false;
+                } else {
+                    status.textContent = 'Errore durante l\'avvio: ' + data.error;
+                    status.className = 'error';
+                }
+            } catch (error) {
+                status.textContent = 'Errore durante l\'avvio: ' + error;
+                status.className = 'error';
+            }
+        });
+
+        stopBtn.addEventListener('click', async () => {
+            try {
+                const response = await fetch('/stop');
+                const data = await response.json();
+                if (data.success) {
+                    status.textContent = 'Script fermato con successo!';
+                    status.className = 'success';
+                    startBtn.disabled = false;
+                    stopBtn.disabled = true;
+                } else {
+                    status.textContent = 'Errore durante l\'arresto: ' + data.error;
+                    status.className = 'error';
+                }
+            } catch (error) {
+                status.textContent = 'Errore durante l\'arresto: ' + error;
+                status.className = 'error';
+            }
+        });
+
+        // Controlla lo stato iniziale
+        fetch('/status')
+            .then(response => response.json())
+            .then(data => {
+                if (data.running) {
+                    startBtn.disabled = true;
+                    stopBtn.disabled = false;
+                    status.textContent = 'Script in esecuzione';
+                    status.className = 'success';
+                }
+            })
+            .catch(error => {
+                console.error('Errore nel controllo dello stato:', error);
+            });
+    </script>
+</body>
+</html> 
