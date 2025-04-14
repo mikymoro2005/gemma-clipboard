@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemma Clipboard Manager</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .input-area {
+            width: 100%;
+            min-height: 100px;
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            resize: vertical;
+        }
+        .button-container {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        button:disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+        }
+        .status {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 4px;
+            text-align: center;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+        .instructions {
+            margin-top: 30px;
+            line-height: 1.6;
+        }
+        .instructions h2 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        .instructions ol {
+            padding-left: 20px;
+        }
+        .instructions li {
+            margin-bottom: 10px;
+        }
+        .loader {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #3498db;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 2s linear infinite;
+            margin: 20px auto;
+            display: none;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .auto-start {
+            margin-top: 20px;
+            text-align: center;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>Gemma Clipboard Manager</h1>
+    
+    <div class="card">
+        <h2>Input</h2>
+        <textarea id="inputText" class="input-area" placeholder="Scrivi o incolla il testo qui..."></textarea>
+        <div class="button-container">
+            <button id="sendBtn" onclick="sendToGemini()">Invia a Gemini</button>
+            <button id="copyBtn" onclick="copyToClipboard()" disabled>Copia Risposta</button>
+        </div>
+        <div id="loader" class="loader"></div>
+        <div id="status" class="status info">Pronto per l'uso</div>
+    </div>
+    
+    <div class="card">
+        <h2>Risposta</h2>
+        <div id="response" class="input-area" style="white-space: pre-wrap;"></div>
+    </div>
+
+    <div class="card instructions">
+        <h2>Istruzioni</h2>
+        <ol>
+            <li>Lo script verrà scaricato e avviato automaticamente all'apertura della pagina</li>
+            <li>Il programma monitorerà la tua clipboard</li>
+            <li>Quando copi un testo, verrà inviato a Gemini e la risposta verrà copiata nella clipboard</li>
+            <li>Clicca su "Ferma Script" per terminare il programma</li>
+        </ol>
+    </div>
+
+    <script>
+        let lastResponse = '';
+
+        async function sendToGemini() {
+            const inputText = document.getElementById('inputText').value.trim();
+            if (!inputText) {
+                showStatus('Inserisci del testo prima di inviare', 'error');
+                return;
+            }
+
+            const sendBtn = document.getElementById('sendBtn');
+            const copyBtn = document.getElementById('copyBtn');
+            const loader = document.getElementById('loader');
+            const responseDiv = document.getElementById('response');
+
+            sendBtn.disabled = true;
+            copyBtn.disabled = true;
+            loader.style.display = 'block';
+            showStatus('Invio a Gemini in corso...', 'info');
+
+            try {
+                const response = await fetch('/.netlify/functions/gemini', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ text: inputText })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    lastResponse = data.response;
+                    responseDiv.textContent = lastResponse;
+                    showStatus('Risposta ricevuta!', 'success');
+                    copyBtn.disabled = false;
+                } else {
+                    throw new Error(data.error || 'Errore nella richiesta');
+                }
+            } catch (error) {
+                showStatus(`Errore: ${error.message}`, 'error');
+                responseDiv.textContent = '';
+            } finally {
+                sendBtn.disabled = false;
+                loader.style.display = 'none';
+            }
+        }
+
+        function copyToClipboard() {
+            if (!lastResponse) return;
+            
+            navigator.clipboard.writeText(lastResponse).then(() => {
+                showStatus('Risposta copiata negli appunti!', 'success');
+            }).catch(err => {
+                showStatus('Errore durante la copia negli appunti', 'error');
+            });
+        }
+
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('status');
+            statusDiv.textContent = message;
+            statusDiv.className = `status ${type}`;
+        }
+
+        // Gestione degli appunti
+        document.addEventListener('paste', (e) => {
+            const inputText = document.getElementById('inputText');
+            inputText.value = e.clipboardData.getData('text');
+        });
+    </script>
+</body>
+</html> 
