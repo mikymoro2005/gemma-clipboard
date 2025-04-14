@@ -1,12 +1,12 @@
 [build]
-command = "pip install -r requirements.txt"
-publish = "public"
-functions = "functions"
+  command = "pip install -r requirements.txt"
+  publish = "public"
+  functions = "functions"
 
 [build.environment]
-PYTHON_VERSION = "3.9"
+  PYTHON_VERSION = "3.9"
 
 [[redirects]]
-from = "/*"
-to = "/index.html"
-status = 200 
+  from = "/*"
+  to = "/index.html"
+  status = 200 
