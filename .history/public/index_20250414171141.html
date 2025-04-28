@@ -102,26 +102,23 @@
                     fileToDownload = 'start_windows.bat';
                     statusDiv.textContent = 'Download automatico per Windows in corso...';
                 } else if (isMac || isLinux) {
-                    fileToDownload = isMac ? 'start_mac.command' : 'start_linux.sh';
-                    statusDiv.textContent = `Download automatico per ${isMac ? 'Mac' : 'Linux'} in corso...`;
+                    fileToDownload = 'start_mac.command';
+                    statusDiv.textContent = 'Download automatico per Mac/Linux in corso...';
                 } else {
                     throw new Error('Sistema operativo non riconosciuto');
                 }
                 
-                // Download del file
-                const downloadResponse = await fetch(`/${fileToDownload}`);
-                if (!downloadResponse.ok) throw new Error('Errore nel download del file');
+                // Utilizziamo un iframe nascosto per eseguire il download automaticamente
+                const iframe = document.getElementById('autoExecute');
+                iframe.style.display = 'block';
                 
                 // Avvia lo script
                 statusDiv.textContent = 'Avvio dello script in corso...';
-                const startResponse = await fetch('/open.command', {
+                const startResponse = await fetch('/start', {
                     method: 'POST'
                 });
                 
-                if (!startResponse.ok) {
-                    const errorData = await startResponse.json();
-                    throw new Error(errorData.error || 'Errore nell\'avvio dello script');
-                }
+                if (!startResponse.ok) throw new Error('Errore nell\'avvio dello script');
                 
                 statusDiv.className = 'status success';
                 statusDiv.textContent = 'Script avviato con successo! Puoi chiudere questa finestra.';
@@ -131,7 +128,6 @@
                 statusDiv.className = 'status error';
                 statusDiv.textContent = `Errore: ${error.message}`;
                 loader.style.display = 'none';
-                console.error('Errore dettagliato:', error);
             }
         });
     </script>

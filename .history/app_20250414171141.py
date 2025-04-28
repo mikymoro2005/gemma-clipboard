@@ -127,4 +127,4 @@ if __name__ == '__main__':
         print("File Python non trovato:", PYTHON_SCRIPT)
         print("Assicurati che il file sia presente prima di avviare l'applicazione.")
     
-    app.run(host='0.0.0.0', port=8080) 
+    app.run(host='0.0.0.0', port=5000) 
