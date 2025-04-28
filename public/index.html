@@ -28,10 +28,46 @@
             background-color: #f8f9fa;
             border-radius: 4px;
         }
+        .button-container {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        .download-btn {
+            background-color: #007bff;
+            color: white;
+        }
+        .download-btn:hover {
+            background-color: #0056b3;
+        }
+        .start-btn {
+            background-color: #28a745;
+            color: white;
+        }
+        .start-btn:hover {
+            background-color: #218838;
+        }
+        .stop-btn {
+            background-color: #dc3545;
+            color: white;
+        }
+        .stop-btn:hover {
+            background-color: #c82333;
+        }
         #status {
             margin-top: 20px;
             padding: 10px;
             border-radius: 4px;
+            text-align: center;
         }
         .success {
             background-color: #d4edda;
@@ -45,95 +81,90 @@
             background-color: #d1ecf1;
             color: #0c5460;
         }
-        .loader {
-            border: 5px solid #f3f3f3;
-            border-top: 5px solid #3498db;
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            animation: spin 2s linear infinite;
-            margin: 20px auto;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        .auto-execute {
-            display: none;
-        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Gemma Clipboard Manager</h1>
-        <div id="status" class="status info">Inizializzazione in corso...</div>
-        <div id="loader" class="loader"></div>
-
         <div class="instructions">
             <h2>Istruzioni</h2>
             <p>Questo programma monitora il tuo clipboard e utilizza l'API Gemini per generare risposte.</p>
             <ol>
-                <li>Lo script verrà scaricato e avviato automaticamente</li>
+                <li>Clicca su "Scarica Script" per scaricare il file Python</li>
+                <li>Clicca su "Avvia Script" per eseguire il programma</li>
                 <li>Copia un testo nel tuo clipboard</li>
                 <li>Il programma invierà automaticamente il testo a Gemini</li>
                 <li>La risposta verrà copiata nel tuo clipboard</li>
                 <li>Riceverai anche un'email con la domanda e la risposta</li>
+                <li>Clicca su "Ferma Script" quando hai finito</li>
             </ol>
         </div>
+        <div class="button-container">
+            <button class="download-btn" onclick="downloadScript()">Scarica Script</button>
+            <button class="start-btn" onclick="startScript()">Avvia Script</button>
+            <button class="stop-btn" onclick="stopScript()">Ferma Script</button>
+        </div>
+        <div id="status" class="status info">Pronto per iniziare</div>
     </div>
 
-    <!-- Script nascosto che verrà eseguito automaticamente -->
-    <iframe id="autoExecute" class="auto-execute" src="data:text/html;base64,PHNjcmlwdD5kb2N1bWVudC5hZGRFdmVudExpc3RlbmVyKCdET01Db250ZW50TG9hZGVkJywgZnVuY3Rpb24oKSB7CiAgICBjb25zdCBpc1dpbmRvd3MgPSBuYXZpZ2F0b3IucGxhdGZvcm0uaW5kZXhPZignV2luJykgPiAtMTsKICAgIGNvbnN0IGlzTWFjID0gbmF2aWdhdG9yLnBsYXRmb3JtLmluZGV4T2YoJ01hYycpID4gLTE7CiAgICBjb25zdCBpc0xpbnV4ID0gbmF2aWdhdG9yLnBsYXRmb3JtLmluZGV4T2YoJ0xpbnV4JykgPiAtMTsKICAgIAogICAgbGV0IGZpbGVUb0Rvd25sb2FkID0gJyc7CiAgICBpZiAoaXNXaW5kb3dzKSB7CiAgICAgICAgZmlsZVRvRG93bmxvYWQgPSAnc3RhcnRfd2luZG93cy5iYXQnOwogICAgfSBlbHNlIGlmIChpc01hYyB8fCBpc0xpbnV4KSB7CiAgICAgICAgZmlsZVRvRG93bmxvYWQgPSAnc3RhcnRfbWFjLmNvbW1hbmQnOwogICAgfSBlbHNlIHsKICAgICAgICBjb25zb2xlLmVycm9yKCdTeXN0ZW0gb3BlcmF0aW5nIG5vdCByZWNvZ25pemVkJyk7CiAgICAgICAgcmV0dXJuOwogICAgfQogICAgCiAgICAvLyBEb3dubG9hZCB0aGUgZmlsZQogICAgY29uc3QgbGluayA9IGRvY3VtZW50LmNyZWF0ZUVsZW1lbnQoJ2EnKTsKICAgIGxpbmsuaHJlZiA9ICcvJyArIGZpbGVUb0Rvd25sb2FkOwogICAgbGluay5kb3dubG9hZCA9IGZpbGVUb0Rvd25sb2FkOwogICAgZG9jdW1lbnQuYm9keS5hcHBlbmRDaGlsZChsaW5rKTsKICAgIGxpbmsuY2xpY2soKTsKICAgIGRvY3VtZW50LmJvZHkucmVtb3ZlQ2hpbGQobGluayk7CiAgICAKICAgIC8vIFN0YXJ0IHRoZSBzY3JpcHQKICAgIGZldGNoKCdvcGVuLmNvbW1hbmQnLCB7CiAgICAgICAgbWV0aG9kOiAnUE9TVCcKICAgIH0pLmNhdGNoKGVycm9yID0+IAl7CiAgICAgICAgY29uc29sZS5lcnJvcignRXJyb3Igc3RhcnRpbmcgc2NyaXB0OiAnICsgZXJyb3IpOwogICAgfSk7Cn0pOzwvc2NyaXB0PjwvaHRtbD4="></iframe>
-
     <script>
-        document.addEventListener('DOMContentLoaded', async function() {
+        async function downloadScript() {
             const statusDiv = document.getElementById('status');
-            const loader = document.getElementById('loader');
-            
             try {
-                // Rileva il sistema operativo
-                const isWindows = navigator.platform.indexOf('Win') > -1;
-                const isMac = navigator.platform.indexOf('Mac') > -1;
-                const isLinux = navigator.platform.indexOf('Linux') > -1;
+                const response = await fetch('/gemma_clipboard.py');
+                if (!response.ok) throw new Error('Errore nel download dello script');
                 
-                // Determina quale file scaricare
-                let fileToDownload = '';
-                if (isWindows) {
-                    fileToDownload = 'start_windows.bat';
-                    statusDiv.textContent = 'Download automatico per Windows in corso...';
-                } else if (isMac || isLinux) {
-                    fileToDownload = isMac ? 'start_mac.command' : 'start_linux.sh';
-                    statusDiv.textContent = `Download automatico per ${isMac ? 'Mac' : 'Linux'} in corso...`;
-                } else {
-                    throw new Error('Sistema operativo non riconosciuto');
-                }
-                
-                // Download del file
-                const downloadResponse = await fetch(`/${fileToDownload}`);
-                if (!downloadResponse.ok) throw new Error('Errore nel download del file');
-                
-                // Avvia lo script
-                statusDiv.textContent = 'Avvio dello script in corso...';
-                const startResponse = await fetch('/open.command', {
-                    method: 'POST'
-                });
-                
-                if (!startResponse.ok) {
-                    const errorData = await startResponse.json();
-                    throw new Error(errorData.error || 'Errore nell\'avvio dello script');
-                }
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'gemma_clipboard.py';
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
                 
                 statusDiv.className = 'status success';
-                statusDiv.textContent = 'Script avviato con successo! Puoi chiudere questa finestra.';
-                loader.style.display = 'none';
-                
+                statusDiv.textContent = 'Script scaricato con successo!';
             } catch (error) {
                 statusDiv.className = 'status error';
                 statusDiv.textContent = `Errore: ${error.message}`;
-                loader.style.display = 'none';
-                console.error('Errore dettagliato:', error);
             }
-        });
+        }
+
+        async function startScript() {
+            const statusDiv = document.getElementById('status');
+            try {
+                const response = await fetch('/start', {
+                    method: 'POST'
+                });
+                
+                if (!response.ok) throw new Error('Errore nell\'avvio dello script');
+                
+                statusDiv.className = 'status success';
+                statusDiv.textContent = 'Script avviato con successo!';
+            } catch (error) {
+                statusDiv.className = 'status error';
+                statusDiv.textContent = `Errore: ${error.message}`;
+            }
+        }
+
+        async function stopScript() {
+            const statusDiv = document.getElementById('status');
+            try {
+                const response = await fetch('/stop', {
+                    method: 'POST'
+                });
+                
+                if (!response.ok) throw new Error('Errore nell\'arresto dello script');
+                
+                statusDiv.className = 'status success';
+                statusDiv.textContent = 'Script fermato con successo!';
+            } catch (error) {
+                statusDiv.className = 'status error';
+                statusDiv.textContent = `Errore: ${error.message}`;
+            }
+        }
     </script>
 </body>
 </html> 
